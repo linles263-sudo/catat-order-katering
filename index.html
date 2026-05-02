@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Katering PKK</title>
+<style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { margin: 0; background: #f5f5f5; padding: 10px; }
+   .container { max-width: 500px; margin: auto; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+   .header { background: #FF6B35; color: white; padding: 16px; border-radius: 12px 12px 0 0; text-align: center; }
+   .header h1 { margin: 0; font-size: 20px; }
+   .content { padding: 16px; }
+    label { display: block; margin: 12px 0 4px; font-weight: 600; font-size: 14px; }
+    input, select, textarea { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
+    input:focus { border-color: #FF6B35; outline: none; }
+   .row { display: flex; gap: 10px; }
+   .row > div { flex: 1; }
+    button { width: 100%; padding: 14px; margin-top: 16px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; }
+   .btn-hitung { background: #FF6B35; color: white; }
+   .btn-wa { background: #25D366; color: white; }
+   .btn-reset { background: #6c757d; color: white; }
+   .hasil { background: #FFF3E0; border: 2px dashed #FF6B35; padding: 12px; border-radius: 8px; margin-top: 16px; display: none; }
+   .hasil h3 { margin: 0 0 8px; color: #FF6B35; font-size: 16px; }
+   .hasil p { margin: 4px 0; font-size: 14px; }
+   .footer { text-align: center; padding: 12px; font-size: 12px; color: #888; }
+   .badge { background: #FF6B35; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🍱 DIGITAL KATERING PRO</h1>
+        <span class="badge">Sekali Klik Hitung Semua</span>
+    </div>
+    <div class="content">
+        <label>Nama Pelanggan</label>
+        <input type="text" id="nama" placeholder="Bu Siti / Pak RT 05">
+
+        <label>Tanggal Acara</label>
+        <input type="date" id="tanggal">
+
+        <label>Pilih Menu</label>
+        <select id="menu">
+            <option value="rendang">Rendang Daging</option>
+            <option value="ayam">Ayam Bakar Madu</option>
+            <option value="nasibox">Nasi Box Komplit</option>
+            <option value="tumpeng">Tumpeng Mini</option>
+        </select>
+
+        <div class="row">
+            <div>
+                <label>Jumlah Porsi</label>
+                <input type="number" id="porsi" placeholder="100" min="1">
+            </div>
+            <div>
+                <label>Harga Jual/Porsi</label>
+                <input type="number" id="hargaJual" placeholder="25000" min="0">
+            </div>
+        </div>
+
+        <label>Catatan</label>
+        <textarea id="catatan" rows="2" placeholder="Pedas, Alamat kirim, Jam kirim..."></textarea>
+
+        <button class="btn-hitung" onclick="hitung()">🔥 HITUNG HPP + LABA</button>
+
+        <div class="hasil" id="hasil">
+            <h3>RINCIAN OTOMATIS:</h3>
+            <p id="outBahan"></p>
+            <p id="outOmset"></p>
+            <p id="outHpp"></p>
+            <p id="outLaba"></p>
+        </div>
+
+        <button class="btn-wa" onclick="kirimWA()" id="btnWa" style="display:none;">📲 KIRIM NOTA KE WA PELANGGAN</button>
+        <button class="btn-reset" onclick="reset()">🔄 ORDERAN BARU</button>
+    </div>
+    <div class="footer">
+        Digital Katering Tulungagung | Biar Ibu Ga Pusing Ngitung
+    </div>
+</div>
+
+<script>
+// Database resep per 100 porsi
+const resep = {
+    rendang: { daging: 15, santan: 20, bumbu: 1.5, hppPorsi: 18000, nama: "Rendang Daging" },
+    ayam: { ayam: 12, bumbu: 1, madu: 0.5, hppPorsi: 15000, nama: "Ayam Bakar Madu" },
+    nasibox: { beras: 8, ayam: 10, telur: 100, hppPorsi: 12000, nama: "Nasi Box Komplit" },
+    tumpeng: { beras: 5, ayam: 8, telur: 50, hppPorsi: 20000, nama: "Tumpeng Mini" }
+};
+
+let dataTerakhir = {};
+
+function hitung() {
+    const nama = document.getElementById('nama').value || "Pelanggan";
+    const tanggal = document.getElementById('tanggal').value;
+    const menu = document.getElementById('menu').value;
+    const porsi = parseFloat(document.getElementById('porsi').value) || 0;
+    const hargaJual = parseFloat(document.getElementById('hargaJual').value) || 0;
+    const catatan = document.getElementById('catatan').value;
+
+    if(porsi <= 0 || hargaJual <= 0) {
+        alert("Isi Jumlah Porsi & Harga Jual dulu Bu!");
+        return;
+    }
+
+    const r = resep[menu];
+    const faktor = porsi / 100;
+    const totalHpp = r.hppPorsi * porsi;
+    const omset = hargaJual * porsi;
+    const laba = omset - totalHpp;
+
+    // Tampilkan bahan
+    let bahanText = "<b>Kebutuhan Bahan:</b><br>";
+    for(let key in r) {
+        if(key!== 'hppPorsi' && key!== 'nama') {
+            const jumlah = (r[key] * faktor).toFixed(1);
+            const satuan = key === 'telur'? 'butir' : 'kg';
+            bahanText += `- ${key.charAt(0).toUpperCase() + key.slice(1)}: ${jumlah} ${satuan}<br>`;
+        }
+    }
+
+    document.getElementById('outBahan').innerHTML = bahanText;
+    document.getElementById('outOmset').innerHTML = `<b>Total Omset:</b> Rp ${omset.toLocaleString('id-ID')}`;
+    document.getElementById('outHpp').innerHTML = `<b>Total HPP:</b> Rp ${totalHpp.toLocaleString('id-ID')}`;
+    document.getElementById('outLaba').innerHTML = `<b>Perkiraan Laba:</b> Rp ${laba.toLocaleString('id-ID')}`;
+
+    document.getElementById('hasil').style.display = 'block';
+    document.getElementById('btnWa').style.display = 'block';
+
+    // Simpan buat WA
+    dataTerakhir = { nama, tanggal, menu: r.nama, porsi, hargaJual, omset, catatan };
+}
+
+function kirimWA() {
+    const d = dataTerakhir;
+    const teks = `*NOTA KATERING DIGITAL*%0A%0A*Pelanggan:* ${d.nama}%0A*Tanggal Acara:* ${d.tanggal}%0A*Menu:* ${d.menu}%0A*Jumlah:* ${d.porsi} porsi%0A*Harga:* Rp ${d.hargaJual.toLocaleString('id-ID')}/porsi%0A*Total:* Rp ${d.omset.toLocaleString('id-ID')}%0A%0A*Catatan:* ${d.catatan}%0A%0A_Terima kasih sudah order Bu!_%0A_Digital Katering Tulungagung_`;
+    window.open(`https://wa.me/?text=${teks}`, '_blank');
+}
+
+function reset() {
+    document.getElementById('nama').value = '';
+    document.getElementById('porsi').value = '';
+    document.getElementById('hargaJual').value = '';
+    document.getElementById('catatan').value = '';
+    document.getElementById('hasil').style.display = 'none';
+    document.getElementById('btnWa').style.display = 'none';
+}
+
+// Set tanggal hari ini
+document.getElementById('tanggal').valueAsDate = new Date();
+</script>
+</body>
+  </html>
