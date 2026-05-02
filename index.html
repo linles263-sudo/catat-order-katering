@@ -1,6 +1,41 @@
+9  <script>
+// ===== KUNCI LISENSI KATERING - GANTI TIAP PEMBELI =====
+const DATA_PEMILIK = {
+  nama: "BU SITI KATERING TULUNGAGUNG", 
+  hp: "0895351432524",
+  expired: "2027-05-02",
+  lisensi: "KTR-2026-BS01"
+};
+
+// ===== SISTEM KUNCI OTOMATIS =====
+document.addEventListener('DOMContentLoaded', function() {
+  document.title = "Katering " + DATA_PEMILIK.nama;
+  let judul = document.querySelector('.header h1');
+  if(judul) judul.innerText = "Digital Katering " + DATA_PEMILIK.nama;
+  
+  if (new Date() > new Date(DATA_PEMILIK.expired)) {
+    document.body.innerHTML = `
+    <div style="text-align:center;padding:40px;font-family:sans-serif;background:#FF6B35;color:white;min-height:100vh">
+      <h1 style="font-size:28px">MASA AKTIF HABIS</h1>
+      <p style="font-size:18px">Aplikasi ${DATA_PEMILIK.nama} sudah expired.</p>
+      <p style="font-size:16px">Hubungi Developer untuk perpanjang:</p>
+      <a href="https://wa.me/62${DATA_PEMILIK.hp.slice(1)}" style="background:white;color:#FF6B35;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;margin-top:10px">WA ${DATA_PEMILIK.hp}</a>
+      <p style="margin-top:30px;font-size:14px">Biaya perpanjangan Rp 500.000/tahun</p>
+    </div>`;
+  }
+});
+// ===== SELESAI KUNCI =====
+</script>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
+20 </script>
+21 
+22 <!DOCTYPE html>
+23 <html lang="id">
+24 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Digital Katering PKK</title>
